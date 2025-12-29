@@ -46,6 +46,21 @@ Instead of building custom agent infrastructure (APIs, deployments, UIs, databas
 
 The same system works across different tools because they all understand the same pattern: read instructions, follow them, produce outputs.
 
+## Core Principle
+
+Open Agent Systems are built on a fundamental rule:
+
+**Use code for deterministic work. Use LLM for creative work.**
+
+- **Parsing data?** Write a script.
+- **Validating formats?** Write a script.
+- **Converting files?** Write a script.
+- **Summarizing content?** Use the LLM.
+- **Making editorial choices?** Use the LLM.
+- **Writing prose?** Use the LLM.
+
+This separation makes systems fast, reliable, and cost-effective. See [BestPractices.md](BestPractices.md) for comprehensive guidance.
+
 ## What's Interesting About This
 
 **No code required.** Agent behavior is defined entirely in markdown. You describe what the agent should do, when it should activate, and where outputs go.
@@ -67,9 +82,11 @@ Think of it as a proof of concept for a different way of thinking about agent de
 ## Getting Started
 
 1. Read [`OpenAgentDefinition.md`](./OpenAgentDefinition.md) for the complete specification
-2. Create an `open-agents/` folder in your project
-3. Define your agents in markdown
-4. Point your tool's instruction file to `open-agents/INSTRUCTIONS.md`
+2. Review [BestPractices.md](BestPractices.md) for effective patterns and the deterministic rule
+3. Keep [Troubleshooting.md](Troubleshooting.md) handy for diagnosing issues
+4. Create an `open-agents/` folder in your project
+5. Define your agents in markdown
+6. Point your tool's instruction file to `open-agents/INSTRUCTIONS.md`
 
 The definition document includes complete examples, folder structure templates, and step-by-step guides.
 

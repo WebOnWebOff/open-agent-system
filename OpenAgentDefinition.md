@@ -9,6 +9,7 @@ A comprehensive specification for building and managing Open Agent Systems—pro
 1. [What Is an Open Agent System?](#1-what-is-an-open-agent-system)
 2. [Core Architecture](#2-core-architecture)
    - [The Mandatory Read Directive](#critical-the-mandatory-read-directive) ← **Most important requirement**
+   - [The Deterministic Rule](#the-deterministic-rule) ← **Critical principle**
 3. [Folder Structure](#3-folder-structure)
 4. [Agent File Anatomy](#4-agent-file-anatomy)
    - [Agent-Created Tools](#agent-created-tools)
@@ -17,6 +18,10 @@ A comprehensive specification for building and managing Open Agent Systems—pro
 7. [Operations Guide](#7-operations-guide)
 8. [Adding to an Existing Project](#8-adding-to-an-existing-project)
 9. [Complete Example](#9-complete-example)
+
+**Companion Documents:**
+- [BestPractices.md](BestPractices.md) - Patterns, optimization, and maintainability guidance
+- [Troubleshooting.md](Troubleshooting.md) - Diagnosing and fixing common issues
 
 ---
 
@@ -133,6 +138,41 @@ Since you're already creating command/skill/prompt folders for different tools, 
 | Entry | `AGENTS.md` | Tool detection, pointer to instructions |
 | Index | `open-agents/INSTRUCTIONS.md` | Agent catalog, routing logic, workflow docs |
 | Agents | `open-agents/agents/*.md` | Full agent definitions, behaviors, formats |
+
+### The Deterministic Rule
+
+**Critical Principle: Use code tools for deterministic operations. Use LLM reasoning for creative tasks.**
+
+This is fundamental to building robust, reliable Open Agent Systems:
+
+| Operation Type | Use | Why |
+|----------------|-----|-----|
+| Deterministic (one correct answer) | Code tool (script, command) | Consistent, fast, reliable, zero cost |
+| Creative (judgment required) | LLM reasoning | Flexible, interpretive, contextual |
+
+**Deterministic operations (use code):**
+- Parsing structured data (JSON, XML, YAML, CSV)
+- File format conversions (JSON→CSV, Markdown→HTML)
+- Mathematical calculations (checksums, file sizes, statistics)
+- Validation (email format, URL format, regex patterns)
+- File operations (copy, move, rename, batch processing)
+- Template filling with known values
+
+**Creative operations (use LLM):**
+- Summarizing content
+- Writing prose
+- Making editorial choices
+- Interpreting ambiguous data
+- Deciding tone, style, emphasis
+
+**Hybrid approach:**
+- **HTML generation**: LLM structures content, code produces valid syntax
+- **Report creation**: LLM writes analysis, code formats and validates
+- **Data extraction**: Code parses structure, LLM interprets ambiguous fields
+
+> **Why this matters:** Using LLM for deterministic work is slower, less reliable, and wastes tokens. Using code for deterministic work is instant, consistent, and free.
+
+> **See:** [BestPractices.md](BestPractices.md#the-deterministic-rule) for comprehensive guidance on applying this principle.
 
 ---
 
@@ -412,15 +452,40 @@ article covering Disney's founding through present day.
 
 ### Agent-Created Tools
 
-Agents can create their own scripts and tools to handle repeatable operations more efficiently. Instead of regenerating the same logic via the LLM every time, an agent can write a script once and reuse it.
+Agents should create scripts and tools for deterministic operations. This is not optional for operations that will be repeated or have one correct answer.
 
-#### When to Create Tools
+#### When to Create Tools (Mandatory)
 
-Consider tool creation when an agent:
-- Performs the same file manipulation repeatedly (resize images, compress audio, convert formats)
-- Executes complex shell commands that are error-prone to generate each time
-- Needs precise, deterministic behavior (not probabilistic LLM output)
-- Would benefit from faster execution (scripts run faster than LLM reasoning)
+Create a code tool when:
+- **The operation is deterministic**: Same input always produces same output
+- **The operation will repeat**: More than once
+- **Parsing/validation is required**: JSON, XML, YAML, regex patterns
+- **Format conversion is needed**: JSON→CSV, Markdown→HTML, etc.
+- **Calculations are involved**: File sizes, checksums, statistics
+- **Speed matters**: Batch operations on many files
+
+**Do not use LLM reasoning for these operations.**
+
+#### Examples: LLM vs. Code
+
+**Wrong approach (using LLM):**
+```markdown
+Parse the JSON file and extract the "name" field.
+```
+Problems: Inconsistent, might hallucinate, wastes tokens
+
+**Right approach (using code):**
+```markdown
+Extract the name field:
+```bash
+jq -r '.name' input.json
+```
+If this fails, the JSON is malformed.
+```
+
+> **See:** [BestPractices.md](BestPractices.md#tool-creation-strategy) for comprehensive tool design patterns.
+
+> **Troubleshooting:** If operations produce inconsistent results, see [Troubleshooting.md](Troubleshooting.md#deterministic-operations-failing).
 
 #### Tool Location
 
@@ -684,6 +749,42 @@ System operations (adding, editing, removing agents) are documented directly in 
 ## File Naming Conventions
 
 [Define naming patterns]
+
+---
+
+## Deterministic Operations Policy
+
+This system follows **The Deterministic Rule**:
+
+**If an operation has one correct answer, use a code tool. Do not use LLM reasoning.**
+
+### Operations That MUST Use Code Tools
+
+The following operations MUST use code tools (scripts in `open-agents/tools/`):
+
+- File parsing: JSON, XML, YAML, CSV
+- Format conversions: JSON→CSV, Markdown→HTML
+- Validation: Email format, URL format, file structure
+- Calculations: File sizes, checksums, word counts
+- Text processing: Regex extraction, string manipulation
+- File operations: Batch rename, copy, move
+
+### Operations That Use LLM Reasoning
+
+- Summarizing content
+- Writing prose
+- Making editorial choices
+- Interpreting ambiguous data
+- Making judgment calls about tone, style, emphasis
+
+### Hybrid Operations
+
+Some operations use both:
+- **HTML generation**: LLM decides content structure, code generates valid HTML
+- **Report creation**: LLM writes analysis, code formats and validates
+- **Data extraction**: Code parses structure, LLM interprets ambiguous fields
+
+When in doubt: Can you write a script for it? → Use code. Does it require judgment? → Use LLM.
 
 ---
 
