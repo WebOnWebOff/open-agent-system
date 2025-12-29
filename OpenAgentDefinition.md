@@ -148,16 +148,19 @@ existing-project/
 ├── AGENTS.md                    # Universal entry point
 │
 ├── .claude/skills/              # Claude Code skills
-│   └── {domain}/
+│   ├── {domain}-{command}/
+│   │   └── SKILL.md
+│   └── {another-domain}-{command}/
 │       └── SKILL.md
 │
 ├── .codex/prompts/              # Codex prompts
-│   └── {domain}/
-│       └── {command}.md
+│   ├── {domain}-{command}.md
+│   └── {another-domain}-{command}.md
 │
 ├── .gemini/commands/            # Gemini CLI commands
 │   └── {domain}/
-│       └── {command}.toml
+│       ├── {command}.toml
+│       └── {another-command}.toml
 │
 └── open-agents/                 # The agent system container
     ├── README.md                # Human-readable intro
@@ -490,12 +493,11 @@ Open Agent Systems maintain commands for multiple tools, each with its own forma
 
 ```
 .claude/skills/              # Claude Code (YAML + Markdown)
-└── {domain}/
+└── {domain}-{command}/
     └── SKILL.md
 
 .codex/prompts/              # Codex (Markdown)
-└── {domain}/
-    └── {command}.md
+└── {domain}-{command}.md
 
 .gemini/commands/            # Gemini CLI (TOML)
 └── {domain}/
@@ -504,7 +506,9 @@ Open Agent Systems maintain commands for multiple tools, each with its own forma
 
 **Note:** GitHub Copilot uses the same folder structure and format as Claude (`.claude/skills/`). Both tools support the SKILL.md format with YAML frontmatter. There's no need to duplicate files—Copilot will read from `.claude/skills/`.
 
-Commands are organized by domain (e.g., `history/`, `video/`, `research/`).
+**Domain Organization:**
+- **Gemini CLI** supports folders (namespaces), so commands are organized as `.gemini/commands/{domain}/{command}.toml`
+- **Claude Code, GitHub Copilot, and Codex** do not support folder-based namespacing, so use prefixed naming: `{domain}-{command}` (e.g., `history-research`)
 
 ### Command File Formats
 
@@ -512,46 +516,46 @@ Commands are organized by domain (e.g., `history/`, `video/`, `research/`).
 
 Both Claude Code and GitHub Copilot use the same SKILL.md format: YAML frontmatter followed by natural language instructions.
 
-**Location:** `.claude/skills/{domain}/SKILL.md`
+**Location:** `.claude/skills/{domain}-{command}/SKILL.md`
 
 **Format:**
 ```markdown
 ---
-name: research-topic
-description: Research a historical topic and create a comprehensive article
+name: {domain}-{command}
+description: {Brief description}
 ---
 
-Follow the instructions in `open-agents/agents/researcher.md` to complete this task.
+Follow the instructions in `open-agents/agents/{agent-name}.md` to complete this task.
 
 $ARGUMENTS
 ```
 
 #### Codex: Markdown Prompts
 
-Codex uses simple markdown files.
+Codex uses simple markdown files with prefixed naming.
 
-**Location:** `.codex/prompts/{domain}/{command}.md`
+**Location:** `.codex/prompts/{domain}-{command}.md`
 
 **Format:**
 ```markdown
-Research a historical topic and create a comprehensive article.
+{Brief description}
 
-Follow the instructions in `open-agents/agents/researcher.md`.
+Follow the instructions in `open-agents/agents/{agent-name}.md`.
 
 $ARGUMENTS
 ```
 
 #### Gemini CLI: TOML Commands
 
-Gemini uses TOML format with `description` and `prompt` fields.
+Gemini uses TOML format with `description` and `prompt` fields, and supports folder-based organization.
 
 **Location:** `.gemini/commands/{domain}/{command}.toml`
 
 **Format:**
 ```toml
-description = "Research a historical topic and create a comprehensive article"
+description = "{Brief description}"
 prompt = """
-Follow the instructions in `open-agents/agents/researcher.md`.
+Follow the instructions in `open-agents/agents/{agent-name}.md`.
 
 $ARGUMENTS
 """
@@ -561,10 +565,10 @@ $ARGUMENTS
 
 For a "research" command in the history domain:
 
-**.claude/skills/history/SKILL.md:**
+**.claude/skills/history-research/SKILL.md:**
 ```markdown
 ---
-name: research
+name: history-research
 description: Research a historical topic and create a comprehensive article
 ---
 
@@ -573,7 +577,7 @@ Follow the instructions in `open-agents/agents/researcher.md`.
 $ARGUMENTS
 ```
 
-**.codex/prompts/history/research.md:**
+**.codex/prompts/history-research.md:**
 ```markdown
 Research a historical topic and create a comprehensive article.
 
@@ -600,15 +604,17 @@ $ARGUMENTS
 
 ### Command Naming Conventions
 
-**Structure:** `.{tool}/{type}/{domain}/{command}`
-- `{tool}` = claude, codex, gemini
-- `{type}` = skills, prompts, commands (tool-dependent)
-- `{domain}` = the subject area (history, video, research, etc.)
-- `{command}` = what the command does (research, transform, publish)
+**Prefixed Naming (Claude, Copilot, Codex):**
+- Format: `{domain}-{command}`
+- Example: `history-research`, `video-critique`, `content-transform`
+
+**Folder-Based Naming (Gemini):**
+- Format: `{domain}/{command}`
+- Example: `history/research`, `video/critique`, `content/transform`
 
 **Examples:**
-- Claude/Copilot: `.claude/skills/history/SKILL.md` (contains multiple related commands)
-- Codex: `.codex/prompts/history/research.md`
+- Claude/Copilot: `.claude/skills/history-research/SKILL.md`
+- Codex: `.codex/prompts/history-research.md`
 - Gemini: `.gemini/commands/history/research.toml`
 
 ### Note on System Management
@@ -757,8 +763,8 @@ Follow these steps to create a system from scratch:
 
 ```bash
 mkdir -p open-agents/{agents,tools,source,output-drafts,output-refined,output-final}
-mkdir -p .claude/skills/{domain}
-mkdir -p .codex/prompts/{domain}
+mkdir -p .claude/skills
+mkdir -p .codex/prompts
 mkdir -p .gemini/commands/{domain}
 ```
 
@@ -804,10 +810,10 @@ For each agent, create `open-agents/agents/{name}.md` with:
 
 For each agent, create commands in all three formats:
 
-**Claude/Copilot (.claude/skills/{domain}/SKILL.md):**
+**Claude/Copilot (.claude/skills/{domain}-{command}/SKILL.md):**
 ```markdown
 ---
-name: {command}
+name: {domain}-{command}
 description: {brief description}
 ---
 
@@ -816,7 +822,7 @@ Follow the instructions in `open-agents/agents/{name}.md`.
 $ARGUMENTS
 ```
 
-**Codex (.codex/prompts/{domain}/{command}.md):**
+**Codex (.codex/prompts/{domain}-{command}.md):**
 ```markdown
 {Brief description}
 
@@ -855,7 +861,10 @@ Include guidance for managing the system directly in `INSTRUCTIONS.md`:
 
 ### Adding a New Agent
 1. Create `open-agents/agents/{name}.md` with purpose, triggers, behaviors, output format
-2. Create commands in `.claude/skills/`, `.codex/prompts/`, and `.gemini/commands/`
+2. Create commands using prefixed naming:
+   - `.claude/skills/{domain}-{command}/SKILL.md`
+   - `.codex/prompts/{domain}-{command}.md`
+   - `.gemini/commands/{domain}/{command}.toml`
 3. Add agent entry to "Available Agents" section above
 4. Add routing entries to the routing table
 
@@ -884,7 +893,7 @@ Create commands in all three formats:
 **Claude/Copilot:**
 ```markdown
 ---
-name: {command}
+name: {domain}-{command}
 description: {brief description}
 ---
 
@@ -932,8 +941,8 @@ Add routing entries to the routing table.
 
 ```bash
 git add open-agents/agents/{name}.md
-git add .claude/skills/{domain}/SKILL.md
-git add .codex/prompts/{domain}/{command}.md
+git add .claude/skills/{domain}-{command}/SKILL.md
+git add .codex/prompts/{domain}-{command}.md
 git add .gemini/commands/{domain}/{command}.toml
 git add open-agents/INSTRUCTIONS.md
 git commit -m "Add {agent name} agent"
@@ -948,8 +957,8 @@ git commit -m "Add {agent name} agent"
 Find all components:
 - Definition: `open-agents/agents/{name}.md`
 - Commands: 
-  - `.claude/skills/{domain}/SKILL.md`
-  - `.codex/prompts/{domain}/{command}.md`
+  - `.claude/skills/{domain}-{command}/SKILL.md`
+  - `.codex/prompts/{domain}-{command}.md`
   - `.gemini/commands/{domain}/{command}.toml`
 
 #### Step 2: Understand Current Behavior
@@ -988,8 +997,8 @@ git commit -m "Update {agent name}: {what changed}"
 
 ```bash
 rm open-agents/agents/{name}.md
-rm .claude/skills/{domain}/SKILL.md
-rm .codex/prompts/{domain}/{command}.md
+rm -rf .claude/skills/{domain}-{command}/
+rm .codex/prompts/{domain}-{command}.md
 rm .gemini/commands/{domain}/{command}.toml
 ```
 
@@ -1086,8 +1095,8 @@ Add agents to `open-agents/agents/` following the template in [Section 4](#4-age
 #### Step 5: Create commands for all tools
 
 Add commands to:
-- `.claude/skills/{domain}/`
-- `.codex/prompts/{domain}/`
+- `.claude/skills/{domain}-{command}/`
+- `.codex/prompts/` (as `{domain}-{command}.md`)
 - `.gemini/commands/{domain}/`
 
 #### Step 6: Create or update AGENTS.md
@@ -1100,23 +1109,6 @@ Create this file if it doesn't exist, or add the directive to the top if it does
 ```
 
 That's the minimum requirement. Optionally add a quick reference table below for convenience.
-
-### What NOT to Do
-
-- **Don't replace** existing `AGENTS.md` content—append to it
-- **Don't put agent files** at project root—keep them in `open-agents/`
-- **Don't modify** the project's existing folder structure
-- **Don't add** numbered prefixes to existing project folders
-
-### Verifying the Integration
-
-After integration, confirm:
-
-1. `open-agents/README.md` exists and is human-readable
-2. `open-agents/INSTRUCTIONS.md` lists all agents
-3. `AGENTS.md` has the Open Agents section with mandatory read directive
-4. Commands exist in all three tool folders
-5. Running commands invokes the correct agent
 
 ---
 
@@ -1135,14 +1127,17 @@ my-existing-project/
 ├── AGENTS.md                    # Universal entry point
 │
 ├── .claude/skills/
-│   └── history/
+│   ├── history-research/
+│   │   └── SKILL.md
+│   ├── history-html/
+│   │   └── SKILL.md
+│   └── history-extract/
 │       └── SKILL.md
 │
 ├── .codex/prompts/
-│   └── history/
-│       ├── research.md
-│       ├── html.md
-│       └── extract.md
+│   ├── history-research.md
+│   ├── history-html.md
+│   └── history-extract.md
 │
 ├── .gemini/commands/
 │   └── history/
@@ -1187,12 +1182,14 @@ my-existing-project/
 ### Available Commands
 
 **Claude Code / GitHub Copilot:**
-- Skills in `.claude/skills/history/SKILL.md`
+- `history-research` — Research and create article
+- `history-html` — Generate HTML from article
+- `history-extract` — Extract structured JSON
 
 **Codex:**
-- `/history research [topic]` — Research and create article
-- `/history html [file]` — Generate HTML from article
-- `/history extract [file]` — Extract structured JSON
+- `/history-research [topic]` — Research and create article
+- `/history-html [file]` — Generate HTML from article
+- `/history-extract [file]` — Extract structured JSON
 
 **Gemini CLI:**
 - `/history research [topic]`
@@ -1210,7 +1207,7 @@ This folder contains an Open Agent System for researching historical topics and 
 ## Agents
 
 - **Researcher** — Creates comprehensive markdown articles
-- **HTML Generator** — Transforms articles into themed webpages
+- **HTML Generator** — Transforms articles into themed HTML pages
 - **Data Extractor** — Extracts structured JSON from articles
 
 ## Getting Started
@@ -1295,10 +1292,10 @@ An open agent system for researching historical topics.
 
 #### Command Files
 
-**.claude/skills/history/SKILL.md:**
+**.claude/skills/history-research/SKILL.md:**
 ```markdown
 ---
-name: research
+name: history-research
 description: Research a historical topic and create a comprehensive markdown article
 ---
 
@@ -1307,7 +1304,7 @@ Follow the instructions in `open-agents/agents/researcher.md`.
 $ARGUMENTS
 ```
 
-**.codex/prompts/history/research.md:**
+**.codex/prompts/history-research.md:**
 ```markdown
 Research a historical topic and create a comprehensive markdown article.
 
@@ -1326,19 +1323,6 @@ $ARGUMENTS
 """
 ```
 
-#### Stub File (open-agents/source/disney_animation.md)
-
-```markdown
-# The History of Disney Animation
-
-> From a small studio in Los Angeles to the most influential animation
-> company in the world.
-
-<!-- Stub file. Ask the Researcher to expand this. -->
-```
-
----
-
 ## Summary
 
 An Open Agent System consists of:
@@ -1348,25 +1332,12 @@ An Open Agent System consists of:
 3. **An INSTRUCTIONS.md** that catalogs agents and routes requests
 4. **Agent definitions** (`agents/*.md`) that define specialized behaviors
 5. **Commands** in tool-specific formats:
-   - `.claude/skills/` — Claude Code & GitHub Copilot (YAML + Markdown)
-   - `.codex/prompts/` — Codex (Markdown)
-   - `.gemini/commands/` — Gemini CLI (TOML)
+   - `.claude/skills/{domain}-{command}/` — Claude Code & GitHub Copilot (YAML + Markdown)
+   - `.codex/prompts/{domain}-{command}.md` — Codex (Markdown)
+   - `.gemini/commands/{domain}/{command}.toml` — Gemini CLI (TOML)
 6. **Structured folders** (`source/`, `output-*/`) for organized workflow
 7. **Entry point file** (`AGENTS.md`) with the mandatory read directive
 
 **Critical:** `AGENTS.md` must contain `**CRITICAL: Read `open-agents/INSTRUCTIONS.md` immediately.**` at the top. Create this file if it doesn't exist.
 
-The pattern enables:
-- **Tool agnosticism:** Works with Claude Code, GitHub Copilot, Gemini CLI, Codex
-- **Progressive disclosure:** Only loads what's needed
-- **Domain flexibility:** Reconfigurable for any file-based workflow
-- **Non-disruptive integration:** Adds to existing projects without conflict
-- **Self-modification:** Can add, edit, and remove agents
-
-To create a new system: `open-agents/` folder → README → INSTRUCTIONS → agents → commands (all formats) → create `AGENTS.md` with mandatory read directive.
-
-To add to existing project: create `open-agents/`, add mandatory read directive to `AGENTS.md`.
-
----
-
-*This definition document describes the Open Agent System specification.*
+**Naming Convention:** Claude, Copilot, and Codex use prefixed naming (`{domain}-{command}`). Gemini supports folder-based organization (`{domain}/{command}`).
