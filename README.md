@@ -19,6 +19,8 @@ Their core capabilities -- reading files, writing files, following instructions,
 
 An **Open Agent System** is a folder structure and set of markdown files that reconfigures these tools to perform specialized, non-coding tasks. No code required. The AI reads your instructions and becomes that agent.
 
+[`Video explanation`](https://www.youtube.com/watch?v=RV9vBRtXagQ)
+
 ## The Idea
 
 Instead of building custom agent infrastructure (APIs, deployments, UIs, databases), you define agent behavior in markdown files and run them in existing agentic environments.
