@@ -1110,6 +1110,23 @@ Create this file if it doesn't exist, or add the directive to the top if it does
 
 That's the minimum requirement. Optionally add a quick reference table below for convenience.
 
+### What NOT to Do
+
+- **Don't replace** existing `AGENTS.md` content—append to it
+- **Don't put agent files** at project root—keep them in `open-agents/`
+- **Don't modify** the project's existing folder structure
+- **Don't add** numbered prefixes to existing project folders
+
+### Verifying the Integration
+
+After integration, confirm:
+
+1. `open-agents/README.md` exists and is human-readable
+2. `open-agents/INSTRUCTIONS.md` lists all agents
+3. `AGENTS.md` has the Open Agents section with mandatory read directive
+4. Commands exist in all three tool folders
+5. Running commands invokes the correct agent
+
 ---
 
 ## 9. Complete Example
